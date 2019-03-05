@@ -98,7 +98,7 @@ typedef void (^FBSDKAuthenticationCompletionHandler)(NSURL *_Nullable callbackUR
 // Don't call this function in any place else. It should only be called when the class is loaded.
 + (void)initializeWithLaunchData:(NSNotification *)note
 {
-    [[self sharedInstance] application:[UIApplication sharedApplication] didFinishLaunchingWithOptions:launchData];
+    [[self sharedInstance] application:[UIApplication sharedApplication] didFinishLaunchingWithOptions:nil];
 
 #if !TARGET_OS_TV
     // Register Listener for App Link measurement events

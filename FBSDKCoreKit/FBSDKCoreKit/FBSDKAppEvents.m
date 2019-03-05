@@ -627,7 +627,6 @@ static NSString *g_overrideAppID = nil;
   // Restore time spent data, indicating that we're being called from "activateApp", which will,
   // when appropriate, result in logging an "activated app" and "deactivated app" (for the
   // previous session) App Event.
-  [FBSDKTimeSpentData restore:YES];
   [FBSDKUserDataStore initStore];
 }
 
