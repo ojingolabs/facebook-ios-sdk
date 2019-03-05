@@ -35,7 +35,6 @@
 #import "FBSDKServerConfiguration.h"
 #import "FBSDKServerConfigurationManager.h"
 #import "FBSDKSettings+Internal.h"
-#import "FBSDKTimeSpentData.h"
 #import "FBSDKUtility.h"
 
 #if !TARGET_OS_TV
@@ -99,19 +98,12 @@ typedef void (^FBSDKAuthenticationCompletionHandler)(NSURL *_Nullable callbackUR
 // Don't call this function in any place else. It should only be called when the class is loaded.
 + (void)initializeWithLaunchData:(NSNotification *)note
 {
-    NSDictionary *launchData = note.userInfo;
-
     [[self sharedInstance] application:[UIApplication sharedApplication] didFinishLaunchingWithOptions:launchData];
 
 #if !TARGET_OS_TV
     // Register Listener for App Link measurement events
     [FBSDKMeasurementEventListener defaultListener];
 #endif
-    // Set the SourceApplication for time spent data. This is not going to update the value if the app has already launched.
-    [FBSDKTimeSpentData setSourceApplication:launchData[UIApplicationLaunchOptionsSourceApplicationKey]
-                                     openURL:launchData[UIApplicationLaunchOptionsURLKey]];
-    // Register on UIApplicationDidEnterBackgroundNotification events to reset source application data when app backgrounds.
-    [FBSDKTimeSpentData registerAutoResetSourceApplication];
 
     [FBSDKInternalUtility validateFacebookReservedURLSchemes];
     // Remove the observer
@@ -175,7 +167,6 @@ typedef void (^FBSDKAuthenticationCompletionHandler)(NSURL *_Nullable callbackUR
                                        reason:@"Expected 'sourceApplication' to be NSString. Please verify you are passing in 'sourceApplication' from your app delegate (not the UIApplication* parameter). If your app delegate implements iOS 9's application:openURL:options:, you should pass in options[UIApplicationOpenURLOptionsSourceApplicationKey]. "
                                      userInfo:nil];
     }
-    [FBSDKTimeSpentData setSourceApplication:sourceApplication openURL:url];
 
 #if !TARGET_OS_TV
     id<FBSDKURLOpening> pendingURLOpen = _pendingURLOpen;
@@ -233,9 +224,6 @@ typedef void (^FBSDKAuthenticationCompletionHandler)(NSURL *_Nullable callbackUR
     // fetch gate keepers
     [FBSDKGateKeeperManager loadGateKeepers];
 
-    if (FBSDKSettings.isAutoLogAppEventsEnabled) {
-        [self _logSDKInitialize];
-    }
 #if !TARGET_OS_TV
     FBSDKProfile *cachedProfile = [FBSDKProfile fetchCachedProfile];
     [FBSDKProfile setCurrentProfile:cachedProfile];

@@ -37,7 +37,6 @@
 #import "FBSDKServerConfiguration.h"
 #import "FBSDKServerConfigurationManager.h"
 #import "FBSDKSettings.h"
-#import "FBSDKTimeSpentData.h"
 #import "FBSDKUtility.h"
 #import "FBSDKUserDataStore.h"
 
@@ -764,7 +763,6 @@ static NSString *g_overrideAppID = nil;
   }
   NSMutableDictionary *dataDictionary = [NSMutableDictionary dictionaryWithCapacity:3];
   [FBSDKInternalUtility dictionary:dataDictionary setObject:[FBSDKAppEvents userID] forKey:@"user_unique_id"];
-  [FBSDKInternalUtility dictionary:dataDictionary setObject:[FBSDKAppEventsUtility advertiserID] forKey:@"advertiser_id"];
   [FBSDKInternalUtility dictionary:dataDictionary setObject:properties forKey:@"custom_data"];
 
   NSError *error;
@@ -1255,9 +1253,6 @@ static NSString *g_overrideAppID = nil;
   [FBSDKAppEventsUtility ensureOnMainThread:NSStringFromSelector(_cmd) className:NSStringFromClass([self class])];
 
   [self checkPersistedEvents];
-
-  // Restore time spent data, indicating that we're not being called from "activateApp".
-  [FBSDKTimeSpentData restore:NO];
 }
 
 - (void)applicationMovingFromActiveStateOrTerminating
@@ -1272,7 +1267,6 @@ static NSString *g_overrideAppID = nil;
   if (copy) {
     [FBSDKAppEventsStateManager persistAppEventsData:copy];
   }
-  [FBSDKTimeSpentData suspend];
 }
 
 #pragma mark - Custom Audience

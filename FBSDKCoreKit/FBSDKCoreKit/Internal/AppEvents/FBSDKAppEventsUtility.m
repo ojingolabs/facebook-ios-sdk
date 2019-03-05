@@ -31,7 +31,6 @@
 #import "FBSDKInternalUtility.h"
 #import "FBSDKLogger.h"
 #import "FBSDKSettings.h"
-#import "FBSDKTimeSpentData.h"
 
 #define FBSDK_APPEVENTSUTILITY_ANONYMOUSIDFILENAME @"com-facebook-sdk-PersistedAnonymousID.json"
 #define FBSDK_APPEVENTSUTILITY_ANONYMOUSID_KEY @"anon_id"
@@ -50,11 +49,6 @@
   [FBSDKInternalUtility dictionary:parameters setObject:attributionID forKey:@"attribution"];
 #endif
 
-  if (!implicitEventsOnly && shouldAccessAdvertisingID) {
-    NSString *advertiserID = [[self class] advertiserID];
-    [FBSDKInternalUtility dictionary:parameters setObject:advertiserID forKey:@"advertiser_id"];
-  }
-
   parameters[FBSDK_APPEVENTSUTILITY_ANONYMOUSID_KEY] = [self anonymousID];
 
   FBSDKAdvertisingTrackingStatus advertisingTrackingStatus = [[self class] advertisingTrackingStatus];
@@ -63,7 +57,7 @@
     parameters[@"advertiser_tracking_enabled"] = @(allowed).stringValue;
   }
 
-  parameters[@"application_tracking_enabled"] = @(!FBSDKSettings.limitEventAndDataUsage).stringValue;
+  parameters[@"application_tracking_enabled"] = @(NO).stringValue;
 
   NSString *userID = [FBSDKAppEvents userID];
   if (userID) {
@@ -105,32 +99,12 @@
 
   NSString *result = nil;
 
-  Class ASIdentifierManagerClass = fbsdkdfl_ASIdentifierManagerClass();
-  if ([ASIdentifierManagerClass class]) {
-    ASIdentifierManager *manager = [ASIdentifierManagerClass sharedManager];
-    result = manager.advertisingIdentifier.UUIDString;
-  }
-
   return result;
 }
 
 + (FBSDKAdvertisingTrackingStatus)advertisingTrackingStatus
 {
-  static dispatch_once_t fetchAdvertisingTrackingStatusOnce;
-  static FBSDKAdvertisingTrackingStatus status;
-
-  dispatch_once(&fetchAdvertisingTrackingStatusOnce, ^{
-    status = FBSDKAdvertisingTrackingUnspecified;
-    Class ASIdentifierManagerClass = fbsdkdfl_ASIdentifierManagerClass();
-    if ([ASIdentifierManagerClass class]) {
-      ASIdentifierManager *manager = [ASIdentifierManagerClass sharedManager];
-      if (manager) {
-        status = manager.advertisingTrackingEnabled ? FBSDKAdvertisingTrackingAllowed : FBSDKAdvertisingTrackingDisallowed;
-      }
-    }
-  });
-
-  return status;
+  return FBSDKAdvertisingTrackingDisallowed;
 }
 
 + (NSString *)anonymousID
@@ -162,8 +136,6 @@
 + (void)clearLibraryFiles
 {
   [[NSFileManager defaultManager] removeItemAtPath:[[self class] persistenceFilePath:FBSDK_APPEVENTSUTILITY_ANONYMOUSIDFILENAME]
-                                             error:NULL];
-  [[NSFileManager defaultManager] removeItemAtPath:[[self class] persistenceFilePath:FBSDKTimeSpentFilename]
                                              error:NULL];
 }
 
